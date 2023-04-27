@@ -1,91 +1,112 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.5)
 project(hri_rviz)
 
-add_compile_options(-std=c++11)
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
 
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  rviz
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Woverloaded-virtual)
+endif()
+
+add_definitions(-D_BUILD_DIR_PATH="${CMAKE_CURRENT_BINARY_DIR}")
+add_definitions(-D_SRC_DIR_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
+
+if(MSVC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+endif()
+
+
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rviz_common REQUIRED)
+find_package(rviz_default_plugins REQUIRED)
+find_package(rviz_rendering REQUIRED)
+find_package(hri_msgs REQUIRED)
+find_package(hri REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(Qt5 REQUIRED COMPONENTS Widgets)
+
+set(dependencies
+  rclcpp
+  rviz_common
+  rviz_default_plugins
+  rviz_rendering
   hri_msgs
   hri
   sensor_msgs
   cv_bridge
+  image_transport
 )
 
-find_package(OpenCV REQUIRED)
-catkin_package()
-
-include_directories(
-    SYSTEM
-    ${catkin_INCLUDE_DIRS})
-
-link_directories(${catkin_LIBRARY_DIRS})
-
-## This setting causes Qt's "MOC" generation to happen automatically.
-set(CMAKE_AUTOMOC ON)
-
-
-## This plugin includes Qt widgets, so we must include Qt.
-## We'll use the version that rviz used so they are compatible.
-if(rviz_QT_VERSION VERSION_LESS "5")
-  message(STATUS "Using Qt4 based on the rviz_QT_VERSION: ${rviz_QT_VERSION}")
-  find_package(Qt4 ${rviz_QT_VERSION} EXACT REQUIRED QtCore QtGui)
-  ## pull in all required include dirs, define QT_LIBRARIES, etc.
-  include(${QT_USE_FILE})
-else()
-  message(STATUS "Using Qt5 based on the rviz_QT_VERSION: ${rviz_QT_VERSION}")
-  find_package(Qt5 ${rviz_QT_VERSION} REQUIRED Core Widgets)
-  ## make target_link_libraries(${QT_LIBRARIES}) pull in all required dependencies
-  set(QT_LIBRARIES Qt5::Widgets)
-endif()
-
-
-
-## I prefer the Qt signals and slots to avoid defining "emit", "slots",
-## etc because they can conflict with boost signals, so define QT_NO_KEYWORDS here.
-add_definitions(-DQT_NO_KEYWORDS)
-
-## Here we specify the list of source files.
-## The generated MOC files are included automatically as headers.
-set(SRC_FILES
-  src/hri_humans.cpp
-  src/hri_skeletons.cpp
-  src/hri_tf.cpp
+set(hri_rviz_headers_to_moc
+  include/hri_rviz/hri_humans.hpp
+  # include/hri_rviz/hri_skeletons.hpp
+  # include/hri_rviz/hri_tf.hpp
+  # include/hri_rviz/image_transport_display.hpp
 )
 
-## An rviz plugin is just a shared library, so here we declare the
-## library to be called ``${PROJECT_NAME}`` (which is
-## "rviz_plugin_tutorials", or whatever your version of this project
-## is called) and specify the list of source files we collected above
-## in ``${SRC_FILES}``.
-add_library(${PROJECT_NAME} ${SRC_FILES})
+foreach(header "${hri_rviz_headers_to_moc}")
+  qt5_wrap_cpp(hri_rviz_mocs "${header}")
+endforeach()
 
-## Link the myviz executable with whatever Qt libraries have been defined by
-## the ``find_package(Qt4 ...)`` line above, or by the
-## ``set(QT_LIBRARIES Qt5::Widgets)``, and with whatever libraries
-## catkin has included.
-##
-## Although this puts "rviz_plugin_tutorials" (or whatever you have
-## called the project) as the name of the library, cmake knows it is a
-## library and names the actual file something like
-## "librviz_plugin_tutorials.so", or whatever is appropriate for your
-## particular OS.
-target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${catkin_LIBRARIES})
-
-
-install(TARGETS
-  ${PROJECT_NAME}
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+set(hri_rviz_source_files
+  src/hri_rviz/hri_humans.cpp
+  src/hri_rviz/get_transport_from_topic.cpp
+  # src/hri_rviz/hri_skeletons.cpp
+  # src/hri_rviz/hri_tf
 )
 
-install(FILES
-  plugin_description.xml
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+add_library(hri_rviz SHARED
+  ${hri_rviz_mocs}
+  ${hri_rviz_source_files}
+)
+target_include_directories(hri_rviz PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+  ${Qt5Widgets_INCLUDE_DIRS}
+)
 
-#install(DIRECTORY media/
-#  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/media)
+target_link_libraries(${PROJECT_NAME} PUBLIC
+  rviz_ogre_vendor::OgreMain
+  rviz_ogre_vendor::OgreOverlay
+)
+target_compile_definitions(${PROJECT_NAME} PRIVATE 
+"HRI_RVIZ_BUILDING_LIBRARY")
 
-install(DIRECTORY icons/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/icons)
+pluginlib_export_plugin_description_file(hri_rviz plugin_description.xml)
+
+
+ament_target_dependencies(hri_rviz
+PUBLIC
+${dependencies})
+
+# Export old-style CMake variables
+ament_export_include_directories("include/${PROJECT_NAME}")
+
+# Export modern CMake targets
+ament_export_targets(hri_rviz HAS_LIBRARY_TARGET)
+ament_export_dependencies(${dependencies})
+
+install(
+  TARGETS hri_rviz
+  EXPORT hri_rviz
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+install(
+  DIRECTORY include/
+  DESTINATION include/${PROJECT_NAME}
+)
+install(
+  DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/icons"
+  DESTINATION "share/${PROJECT_NAME}"
+)
+
+ament_package()

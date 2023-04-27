@@ -1,28 +1,28 @@
-<library path="lib/libhri_rviz">
+<library path="hri_rviz">
   <class name="hri_rviz/Humans"
          type="rviz::HumansDisplay"
-         base_class_type="rviz::Display">
+         base_class_type="rviz_common::Display">
     <description>
         An image diplayer to visualize the people detected
     </description>
-    <message_type>sensor_msgs/Image</message_type>
-    <message_type>sensor_msgs/CompressedImage</message_type>
-    <message_type>theora_image_transport/Packet</message_type>
+    <message_type>sensor_msgs/msg/Image</message_type>
+    <!-- <message_type>sensor_msgs/msg/CompressedImage</message_type>
+    <message_type>theora_image_transport/msg/Packet</message_type> -->
   </class>  
-  <class name="hri_rviz/Skeletons 3D"
+  <!-- <class name="hri_rviz/Skeletons 3D"
          type="rviz::HumansModelDisplay"
-         base_class_type="rviz::Display">
+         base_class_type="rviz_common::Display">
     <description>
         A multi-people 3D skeleton visualizer
     </description>
-    <message_type>hri_msgs/IdsList</message_type>
+    <message_type>hri_msgs/msg/IdsList</message_type>
   </class>
   <class name="hri_rviz/TF (HRI)"
          type="rviz::HRITFDisplay"
-         base_class_type="rviz::Display">
+         base_class_type="rviz_common::Display">
     <description>
         TF visualizer for human related frames
     </description>
-  </class>
+  </class> -->
 </library>
 

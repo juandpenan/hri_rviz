@@ -27,12 +27,16 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef RVIZ_HRI_SKELETONS_H
-#define RVIZ_HRI_SKELETONS_H
+#ifndef RVIZ_HRI_SKELETONS_HPP
+#define RVIZ_HRI_SKELETONS_HPP
 
-#include <OGRE/OgreVector3.h>
-#include <hri_msgs/IdsList.h>
-#include <rviz/display.h>
+// #include <OGRE/OgreVector3.h>
+#include "hri_msgs/msg/ids_list.hpp"
+// #include <rviz/display.h>
+#include "rviz_default_plugins/displays/robot_model/robot_model_display.hpp"
+#include "rviz_common/properties/ros_topic_property.hpp"
+#include "rviz_common/properties/qos_profile_property.hpp"
+#include "rviz_common/ros_integration/ros_node_abstraction_iface.hpp"
 
 #include <map>
 
@@ -41,29 +45,22 @@ class Entity;
 class SceneNode;
 }  // namespace Ogre
 
-namespace rviz {
-class Axes;
-}
 
 namespace rviz {
-class FloatProperty;
-class Property;
-class Robot;
-class StringProperty;
 
-typedef std::shared_ptr<Robot> RobotPtr;
-
+// using RobotPtr std::shared_ptr<rviz_default_plugins::robot::Robot>;
 /**
  * \class HumansModelDisplay
  * \brief Uses a robot xml description to display the pieces of a robot at the
  * transforms broadcast by rosTF
  */
-class HumansModelDisplay : public Display {
+class HumansModelDisplay : public rviz_default_plugins::displays::RobotModelDisplay
+{ 
   Q_OBJECT
  public:
   HumansModelDisplay();
   ~HumansModelDisplay() override;
-
+  rclcpp::Node::SharedPtr node_test =    rviz_ros_node_.lock()->get_raw_node();
   // Overrides from Display
   void onInitialize() override;
   void update(float wall_dt, float ros_dt) override;
@@ -97,24 +94,20 @@ class HumansModelDisplay : public Display {
 
   float time_since_last_transform_;
 
-  std::string robot_description_;
 
-  Property* visual_enabled_property_;
-  Property* collision_enabled_property_;
-  FloatProperty* update_rate_property_;
-  FloatProperty* alpha_property_;
-  StringProperty* tf_prefix_property_;
-
-  std::map<std::string, RobotPtr> humans_;
-
- private:
-  std::vector<std::string> ids_;
-  ros::Subscriber idsSub_;  // Subscriber for the ids list
-
-  void idsCallback(const hri_msgs::IdsListConstPtr& msg);
-  void initializeRobot(std::map<std::string, RobotPtr>::iterator it);
-};
+  std::map<std::string, std::unique_ptr<rviz_default_plugins::robot::Robot>> humans_;
   
+ private:
+
+  std::vector<std::string> robot_descriptions_;
+  std::vector<std::string> ids_;
+  rclcpp::Subscription<hri_msgs::msg::IdsList>::SharedPtr ids_sub_;
+  void idsCallback(const hri_msgs::msg::IdsList::ConstSharedPtr msg);
+
+  
+  void initializeRobot(std::map<std::string, std::unique_ptr<rviz_default_plugins::robot::Robot>>::iterator it);
+};
+
 }  // namespace rviz
 
 #endif
