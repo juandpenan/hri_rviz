@@ -174,13 +174,6 @@ void HumansDisplay::onInitialize()
 }
 
 HumansDisplay::~HumansDisplay() = default;
-//   if (initialized()) {
-//     delete render_panel_;
-//     delete screen_rect_;
-//     removeAndDestroyChildNode(img_scene_node_->getParentSceneNode(),
-//                               img_scene_node_);
-//   }
-// }
 
 void HumansDisplay::onEnable()
 {
@@ -268,10 +261,8 @@ void HumansDisplay::update(float wall_dt, float ros_dt)
 
 void HumansDisplay::reset()
 {
-  // ImageDisplayBase::reset();
+
   ITDClass::reset();
-  // Display::reset();
-  // messages_received_ = 0;
   clear();
   //TODO:
   // render_panel_->getCamera()->setPosition(

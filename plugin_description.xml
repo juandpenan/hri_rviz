@@ -6,18 +6,18 @@
         An image diplayer to visualize the people detected
     </description>
     <message_type>sensor_msgs/msg/Image</message_type>
-    <!-- <message_type>sensor_msgs/msg/CompressedImage</message_type>
-    <message_type>theora_image_transport/msg/Packet</message_type> -->
+    <message_type>sensor_msgs/msg/CompressedImage</message_type>
+    <!-- <message_type>theora_image_transport/msg/Packet</message_type> -->
   </class>  
   <!-- <class name="hri_rviz/Skeletons 3D"
-         type="rviz::HumansModelDisplay"
+         type="rviz_default_plugins::displays::HumansModelDisplay"
          base_class_type="rviz_common::Display">
     <description>
         A multi-people 3D skeleton visualizer
     </description>
     <message_type>hri_msgs/msg/IdsList</message_type>
-  </class>
-  <class name="hri_rviz/TF (HRI)"
+  </class> -->
+  <!-- <class name="hri_rviz/TF (HRI)"
          type="rviz::HRITFDisplay"
          base_class_type="rviz_common::Display">
     <description>

@@ -31,6 +31,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
+find_package(pluginlib REQUIRED)
 
 set(dependencies
   rclcpp
@@ -42,13 +43,13 @@ set(dependencies
   sensor_msgs
   cv_bridge
   image_transport
+  pluginlib
 )
 
 set(hri_rviz_headers_to_moc
   include/hri_rviz/hri_humans.hpp
   # include/hri_rviz/hri_skeletons.hpp
   # include/hri_rviz/hri_tf.hpp
-  # include/hri_rviz/image_transport_display.hpp
 )
 
 foreach(header "${hri_rviz_headers_to_moc}")
@@ -58,7 +59,7 @@ endforeach()
 set(hri_rviz_source_files
   src/hri_rviz/hri_humans.cpp
   src/hri_rviz/get_transport_from_topic.cpp
-  # src/hri_rviz/hri_skeletons.cpp
+  src/hri_rviz/hri_skeletons.cpp
   # src/hri_rviz/hri_tf
 )
 
@@ -79,7 +80,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 target_compile_definitions(${PROJECT_NAME} PRIVATE 
 "HRI_RVIZ_BUILDING_LIBRARY")
 
-pluginlib_export_plugin_description_file(hri_rviz plugin_description.xml)
+pluginlib_export_plugin_description_file(rviz_common plugin_description.xml)
 
 
 ament_target_dependencies(hri_rviz
